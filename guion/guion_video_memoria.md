@@ -11,9 +11,13 @@ antemano, ANTES de empezar a grabar:
   (botón "Zoom Fit") — no hace falta correr ningún comando durante la
   grabación, solo dejarla abierta así y mostrarla cuando toque.
 
+Cada paso de acá abajo dice **qué pestaña/archivo abrir** y **qué
+decir mientras esa pestaña está en pantalla**, en orden. Cuando
+termines el texto de una pestaña, recién ahí cambiás a la siguiente.
+
 ## 0. Apertura (30 seg)
 
-**Mostrar:** el landing del repositorio.
+**Abrir:** el landing del repositorio.
 
 **Decir:**
 "Hola profe, esto es el trabajo de puntos extra, aparte del examen
@@ -26,23 +30,27 @@ capturas de otro lado."
 
 ## 1. La idea central: realimentación = memoria (1 min)
 
-**Mostrar:** `docs/01-celda-basica.md` y `rtl/and_or_latch.sv`.
+**Abrir:** `docs/01-celda-basica.md`.
 
 **Decir:**
 "El video arranca de una idea simple: para que un circuito 'recuerde'
 algo, su salida tiene que realimentarse a su propia entrada. Una
-compuerta OR con su salida realimentada solo puede recordar un uno; una
-AND con su salida realimentada solo puede recordar un cero. El video
-las combina en lo que llama un AND-OR latch: si pongo `set` en uno,
-`q` pasa a uno y se queda ahí aunque `set` vuelva a cero después; y si
-pongo `reset` en uno, pasa lo mismo pero para el cero. Esto está implementado acá con compuertas
-primitivas de Verilog — `and`, `or`, `not` — a propósito, sin ningún
-reloj: el bit se retiene solo por la realimentación estructural, igual
-que en el video."
+compuerta OR con su salida realimentada solo puede recordar un uno;
+una AND con su salida realimentada solo puede recordar un cero. El
+video las combina en lo que llama un AND-OR latch: si pongo `set` en
+uno, `q` pasa a uno y se queda ahí aunque `set` vuelva a cero después;
+y si pongo `reset` en uno, pasa lo mismo pero para el cero."
+
+**Abrir:** `rtl/and_or_latch.sv`.
+
+**Decir:**
+"Esto está implementado acá con compuertas primitivas de Verilog —
+`and`, `or`, `not` — a propósito, sin ningún reloj: el bit se retiene
+solo por la realimentación estructural, igual que en el video."
 
 ## 2. Gated latch y registro (1.5 min)
 
-**Mostrar:** `rtl/gated_latch.sv` y `rtl/register.sv`.
+**Abrir:** `rtl/gated_latch.sv`.
 
 **Decir:**
 "El problema de usar set/reset directo es que un dato normalmente es
@@ -50,32 +58,41 @@ un solo bit, no dos líneas separadas de 'poner' y 'borrar'. Por eso se
 agrega una línea de write enable: si `wr_en` está en cero, el latch
 ignora completamente el dato que le llegue y mantiene lo que ya tenía
 guardado; si `wr_en` está en uno, copia el valor que le estoy pasando
-y lo retiene después, aunque el dato o el `wr_en` vuelvan a cero.
-Juntando varios de estos gated latches con
-el mismo write enable compartido se forma un registro — acá está
-`register.sv`, parametrizado en el ancho, con un `generate` que
-instancia tantos gated latches como bits se pidan. Este módulo lo dejé
-aparte, con su propio testbench, porque es exactamente el paso
-intermedio que describe el video antes de llegar a la matriz."
+y lo retiene después, aunque el dato o el `wr_en` vuelvan a cero."
+
+**Abrir:** `rtl/register.sv`.
+
+**Decir:**
+"Juntando varios de estos gated latches con el mismo write enable
+compartido se forma un registro — acá está `register.sv`,
+parametrizado en el ancho, con un `generate` que instancia tantos
+gated latches como bits se pidan. Este módulo lo dejé aparte, con su
+propio testbench, porque es exactamente el paso intermedio que
+describe el video antes de llegar a la matriz."
 
 ## 3. El problema de escalar y el decodificador (1.5 min)
 
-**Mostrar:** `docs/03-decodificador.md` y `rtl/decoder.sv`.
+**Abrir:** `docs/03-decodificador.md`.
 
 **Decir:**
 "El video señala el problema de seguir alargando el registro: una
 memoria de un gigabyte necesitaría millones de cables. La solución es
 organizar los latches en una matriz y direccionar cada uno con un
-decodificador de filas y uno de columnas. Un decodificador recibe N
-bits y activa exactamente una de sus 2 a la N salidas — acá en
-`decoder.sv`, parametrizado en N, comparando cada bit de la entrada
-contra el literal de cada salida. Lo probé aislado antes de integrarlo:
-para N igual a 2, las cuatro combinaciones de entrada activan
-exactamente una salida cada una, sin solapamientos."
+decodificador de filas y uno de columnas."
+
+**Abrir:** `rtl/decoder.sv`.
+
+**Decir:**
+"Un decodificador recibe N bits y activa exactamente una de sus 2 a
+la N salidas — acá en `decoder.sv`, parametrizado en N, comparando
+cada bit de la entrada contra el literal de cada salida. Lo probé
+aislado antes de integrarlo: para N igual a 2, las cuatro
+combinaciones de entrada activan exactamente una salida cada una, sin
+solapamientos."
 
 ## 4. Celda direccionable, bus triestado y matriz (2 min)
 
-**Mostrar:** `rtl/mem_cell.sv` y `rtl/mem_matrix.sv`.
+**Abrir:** `rtl/mem_cell.sv`.
 
 **Decir:**
 "Para no necesitar un cable de entrada y otro de salida por cada
@@ -86,24 +103,30 @@ escribiendo esa celda; y hay una línea que hace que esta celda
 específica maneje el bus solo cuando le toca ser leída — en cualquier
 otro momento se queda en alta impedancia, para no estorbar a las demás
 celdas que comparten la misma línea. Es el mismo mecanismo de bus
-triestado que ya usé en la ALU del examen final. En `mem_matrix.sv` se
-juntan el decodificador de filas, el de
-columnas, y por cada celda un AND que combina la selección de fila,
-de columna, y el write o read enable globales — así que solo la celda
-en la intersección exacta de la dirección recibe la señal de
-escritura o lectura."
+triestado que ya usé en la ALU del examen final."
+
+**Abrir:** `rtl/mem_matrix.sv`.
+
+**Decir:**
+"Acá se juntan el decodificador de filas, el de columnas, y por cada
+celda un AND que combina la selección de fila, de columna, y el write
+o read enable globales — así que solo la celda en la intersección
+exacta de la dirección recibe la señal de escritura o lectura."
 
 ## 5. mem_top: de bits a bytes, y un bug real que encontré (2 min)
 
-**Mostrar:** `rtl/mem_top.sv` y `docs/06-verificacion.md`.
+**Abrir:** `rtl/mem_top.sv`.
 
 **Decir:**
 "Para guardar una palabra completa en vez de un solo bit, el video
 repite la matriz una vez por cada bit de la palabra, todas compartiendo
 la misma dirección y el mismo control. Eso es `mem_top`: parametrizado
 en `ADDR_WIDTH` y `DATA_WIDTH`, por defecto justo el ejemplo del
-video, una matriz 4 por 4 de bytes.
+video, una matriz 4 por 4 de bytes."
 
+**Abrir:** `docs/06-verificacion.md`.
+
+**Decir:**
 "Algo que vale la pena contar: al simular esto encontré un bug real.
 Escribir en una dirección corrompía otra dirección que ya tenía un
 valor guardado. Lo investigué por capas: probé el decodificador solo
@@ -121,9 +144,8 @@ asíncrona real."
 
 ## 6. Leer la forma de onda y los resultados (1.5-2 min)
 
-**Mostrar:** cambiar a la ventana de Vivado Simulator (ya abierta de
-antemano, ver nota del inicio), con la vista ajustada a toda la
-simulación.
+**Abrir:** la ventana de Vivado Simulator (ya abierta de antemano, ver
+nota del inicio), con la vista ajustada a toda la simulación.
 
 **Decir:**
 "Esto ya lo tengo corrido de antes: es la misma simulación de
