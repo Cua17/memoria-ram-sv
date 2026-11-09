@@ -1,9 +1,15 @@
 # Guion — Memoria RAM parametrizada (puntos extra)
 
-José Daniel Cuá Fagiani — Carné 21200. Duración estimada: 8-10 minutos.
-Mostrar cámara mientras se habla. Tener abiertas de antemano: el
-repositorio en GitHub, el landing page, y el editor con los archivos
-de `rtl/`.
+José Daniel Cuá Fagiani — Carné 21200. Duración estimada: ~10-10.5
+minutos. Mostrar cámara mientras se habla. Tener abiertas de
+antemano, ANTES de empezar a grabar:
+
+- El repositorio en GitHub y el landing page.
+- El editor (VS Code) con los archivos de `rtl/` y `docs/` en pestañas.
+- La ventana de Vivado Simulator **ya corrida**, con las ondas de
+  `sim/wave.tcl` cargadas y el zoom ajustado a toda la simulación
+  (botón "Zoom Fit") — no hace falta correr ningún comando durante la
+  grabación, solo dejarla abierta así y mostrarla cuando toque.
 
 ## 0. Apertura (30 seg)
 
@@ -111,42 +117,43 @@ en el testbench: fijar la dirección primero, dejarla asentar, y
 después activar el control — igual que exige cualquier memoria
 asíncrona real."
 
-## 6. Resultados de simulación y demostración en vivo (2.5 min)
+## 6. Leer la forma de onda y los resultados (1.5-2 min)
 
-**Mostrar:** primero la terminal con la corrida real de
-`xvlog`/`xelab`/`xsim`; después el visor de formas de onda de Vivado.
+**Mostrar:** cambiar a la ventana de Vivado Simulator (ya abierta de
+antemano, ver nota del inicio), con la vista ajustada a toda la
+simulación.
 
-**Decir (resultados en texto):**
-"Con esa corrección, las tres verificaciones pasan limpio: 22 de 22
-checks para la memoria 4 por 4 de bytes, 5 de 5 para el registro
-independiente, y 5 de 5 para la misma arquitectura instanciada con
-otros parámetros — una matriz de 8 por 8 con palabras de 16 bits, sin
-tocar ningún módulo, solo cambiando los parámetros. Esto demuestra que
-sí quedó parametrizado de verdad, no con un solo tamaño fijo."
+**Decir:**
+"Esto ya lo tengo corrido de antes: es la misma simulación de
+`mem_top`, pero en el visor de formas de onda en vez de solo texto,
+para que se vea de verdad cómo funciona y no solo que lo cuente. Acá
+abajo, en la consola, dice `TESTBENCH: PASS, 22 de 22 checks` — esa es
+la prueba de que la memoria funciona exactamente como debería en los
+22 casos que verifiqué: escrituras, lecturas, que una dirección no se
+corrompa al escribir otra, y el barrido completo de las 16 direcciones.
 
-**Hacer (demo en vivo):** abrir la GUI de Vivado Simulator con
+"Arriba tengo las señales. `addr` es la dirección que se está usando
+en cada momento. `wr_en` se pone en uno cada vez que estoy escribiendo,
+y `rd_en` cuando estoy leyendo. `data` es el bus de datos: cuando ni
+escribo ni leo, se queda en `Z` — alta impedancia, nadie lo maneja — y
+cuando sí, toma el valor que se está escribiendo o el que se está
+leyendo. Y estas de más abajo son la dirección partida en fila y
+columna, que es lo que usa la matriz por dentro para decodificar.
 
-```bash
-xelab testbench -s testbench_sim -debug all
-xsim testbench_sim -gui
-```
+"Miren este primer tramo: dirección 0, se escribe, después se lee, y
+el valor que sale es el mismo que entró. Después dirección 5, mismo
+patrón. Y después viene un barrido completo: se escriben las 16
+direcciones una por una, y después se vuelven a leer todas, para
+comprobar que cada una guardó su propio valor sin pisar a las demás —
+justo lo que antes expliqué que fallaba por el bug de temporización, y
+acá se ve que ya quedó resuelto.
 
-y en la consola Tcl escribir `source sim/wave.tcl` — esto carga de una
-vez la dirección, `wr_en`, `rd_en`, el bus de datos, y por dentro del
-plano de bit 0 las salidas del decodificador de fila/columna y la
-selección de una celda puntual, y corre toda la simulación.
-
-**Decir (señalando la forma de onda):**
-"Acá se ve en vivo lo que antes solo describí: cuando `addr` cambia y
-se activa `wr_en`, el bus de datos entra con el valor que estoy
-escribiendo; cuando cambio la dirección y activo `rd_en`, el bus pasa
-a mostrar lo que esa dirección tiene guardado; y en los tramos donde
-ni `wr_en` ni `rd_en` están activos, el bus queda en alta impedancia —
-se ve como una línea discontinua o en rojo en la forma de onda, no un
-0 ni un 1. Y en las señales internas del decodificador se puede ver
-cómo, al cambiar la dirección, se activa una sola fila y una sola
-columna a la vez — ahí está la selección de celda que expliqué antes,
-pero ahora mostrada, no solo contada."
+"Y las tres verificaciones en total — esta de la memoria 4 por 4, la
+del registro independiente, y la de la misma arquitectura con otros
+parámetros, una matriz de 8 por 8 con palabras de 16 bits — pasan
+limpio sin tocar ningún módulo, solo cambiando los parámetros. Eso
+demuestra que sí quedó parametrizado de verdad, no con un solo tamaño
+fijo."
 
 ## 7. Cierre (30 seg)
 
