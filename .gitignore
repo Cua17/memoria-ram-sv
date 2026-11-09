@@ -1,0 +1,7 @@
+# artefactos de simulacion Vivado (xvlog/xelab/xsim)
+xsim.dir/
+*.jou
+*.log
+*.pb
+*.wdb
+.Xil/

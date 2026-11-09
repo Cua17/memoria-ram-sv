@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memoria RAM parametrizada | Puntos extra — Arquitectura de Computadoras</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a21;
+    --border: #262b35;
+    --text: #e6e8eb;
+    --muted: #9aa3b2;
+    --accent: #5eead4;
+    --accent2: #818cf8;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
+  header { margin-bottom: 40px; }
+  .eyebrow { color: var(--accent); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  h1 { font-size: clamp(28px, 5vw, 40px); margin: 10px 0 8px; line-height: 1.15; }
+  .sub { color: var(--muted); font-size: 16px; }
+  .byline { margin-top: 18px; color: var(--muted); font-size: 14px; }
+  .byline strong { color: var(--text); }
+
+  section { margin-top: 44px; }
+  h2 { font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 18px; }
+  p { color: #cdd3dc; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .card .value { font-size: 20px; font-weight: 700; }
+  .card .note { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .ok { color: var(--ok); }
+  .warn { color: var(--warn); }
+
+  ol.steps { padding-left: 20px; color: #cdd3dc; }
+  ol.steps li { margin-bottom: 8px; }
+
+  ul.links { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  ul.links a {
+    color: var(--text); text-decoration: none; display: flex; justify-content: space-between;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px;
+  }
+  ul.links a:hover { border-color: var(--accent2); }
+  ul.links .arrow { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+  footer { margin-top: 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding-top: 20px; }
+  code { background: var(--panel); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Puntos extra — Arquitectura de Computadoras</div>
+    <h1>Memoria RAM parametrizada en SystemVerilog</h1>
+    <p class="sub">Implementación de la estructura de memoria descrita en el video <a href="https://www.youtube.com/watch?v=rM9BjciBLmg" style="color:var(--accent2)">How Transistors Remember Data</a> (Core Dumped): celda básica → gated latch → registro → decodificador → matriz direccionable con bus triestado → módulo top parametrizado.</p>
+    <div class="byline">José Daniel Cuá Fagiani — Carné 21200</div>
+  </header>
+
+  <section>
+    <h2>Resultados principales (verificados)</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="label">mem_top por defecto (4x4, 1 byte)</div>
+        <div class="value ok">22/22 PASS</div>
+        <div class="note">Vivado xsim — testbench.sv</div>
+      </div>
+      <div class="card">
+        <div class="label">register (módulo intermedio)</div>
+        <div class="value ok">5/5 PASS</div>
+        <div class="note">testbench_register.sv</div>
+      </div>
+      <div class="card">
+        <div class="label">mem_top parametrizado (8x8, 16 bits)</div>
+        <div class="value ok">5/5 PASS</div>
+        <div class="note">testbench_params.sv — ADDR_WIDTH=6, DATA_WIDTH=16</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>De transistores a RAM, capa por capa</h2>
+    <ol class="steps">
+      <li><strong>AND-OR latch</strong> — celda de 1 bit, pura realimentación de compuertas (sin reloj).</li>
+      <li><strong>Gated latch + registro</strong> — una sola línea de datos + write enable; varios latches con el mismo write enable.</li>
+      <li><strong>Decodificador</strong> — N bits de dirección → 2^N salidas one-hot.</li>
+      <li><strong>Celda direccionable + bus triestado</strong> — una sola línea <code>inout</code> sirve para leer y escribir.</li>
+      <li><strong>Matriz</strong> — decodificador de fila + de columna, filtrado con AND, para direccionar una celda entre muchas.</li>
+      <li><strong>mem_top</strong> — una matriz por bit de la palabra, compartiendo dirección y control: la RAM como lista de bytes.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Documentación</h2>
+    <ul class="links">
+      <li><a href="README.md">README principal <span class="arrow">→</span></a></li>
+      <li><a href="docs/01-celda-basica.md">1. Celda básica — AND-OR latch <span class="arrow">→</span></a></li>
+      <li><a href="docs/02-gated-latch-registro.md">2. Gated latch y registro <span class="arrow">→</span></a></li>
+      <li><a href="docs/03-decodificador.md">3. Decodificador de direcciones <span class="arrow">→</span></a></li>
+      <li><a href="docs/04-matriz-y-bus-triestado.md">4. Celda direccionable, bus triestado y matriz <span class="arrow">→</span></a></li>
+      <li><a href="docs/05-mem-top.md">5. mem_top: palabra completa + abstracción de RAM <span class="arrow">→</span></a></li>
+      <li><a href="docs/06-verificacion.md">6. Verificación (incluye un bug de temporización real) <span class="arrow">→</span></a></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Entregables</h2>
+    <table>
+      <tr><th>Archivo</th><th>Contenido</th></tr>
+      <tr><td><code>rtl/</code></td><td>and_or_latch, gated_latch, register, decoder, mem_cell, mem_matrix, mem_top</td></tr>
+      <tr><td><code>sim/</code></td><td>testbench.sv, testbench_register.sv, testbench_params.sv (Vivado xsim)</td></tr>
+      <tr><td><code>docs/</code></td><td>Un documento por capa de la arquitectura + verificación</td></tr>
+      <tr><td><code>guion/</code></td><td>Guion del video explicando el funcionamiento interno</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    Manejo de Base de Datos (pivoteada a Arquitectura de Computadoras) — 2026, Ciclo 2. Trabajo de puntos extra, aparte del examen final.
+  </footer>
+
+</div>
+</body>
+</html>
