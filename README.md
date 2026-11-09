@@ -89,6 +89,35 @@ xelab testbench_params -s testbench_params_sim && xsim testbench_params_sim -run
 
 Cada corrida debe terminar en `TESTBENCH...: PASS (N/N checks)`.
 
+## Cómo demostrarlo en vivo (formas de onda en Vivado)
+
+Para el video conviene mostrar las señales en el visor de formas de
+onda de Vivado (xsim GUI), no solo el texto de PASS/FAIL. Para eso
+hace falta elaborar con información de depuración completa:
+
+```bash
+cd MemoriaRAM
+xvlog --sv rtl/and_or_latch.sv rtl/gated_latch.sv rtl/register.sv rtl/decoder.sv rtl/mem_cell.sv rtl/mem_matrix.sv rtl/mem_top.sv sim/testbench.sv
+xelab testbench -s testbench_sim -debug all
+xsim testbench_sim -gui
+```
+
+Con la GUI abierta, en la consola Tcl (parte inferior) escribir:
+
+```tcl
+source sim/wave.tcl
+```
+
+Esto agrega automáticamente las señales clave (dirección, `wr_en`,
+`rd_en`, bus de datos, y por dentro del plano de bit 0: direcciones de
+fila/columna, salidas del decodificador, y las señales de selección de
+una celda puntual) y corre toda la simulación — ya queda todo dibujado
+para señalar en cámara: la dirección cambiando, la escritura, la
+lectura, y el bus en alta impedancia cuando está ocioso. El contenido
+exacto de `sim/wave.tcl` (y por qué los nombres de las señales internas
+llevan esa sintaxis con barra invertida) está comentado en el propio
+archivo.
+
 ## Video
 
 Guion en [`guion/guion_video_memoria.md`](guion/guion_video_memoria.md).

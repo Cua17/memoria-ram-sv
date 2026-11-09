@@ -111,17 +111,42 @@ en el testbench: fijar la dirección primero, dejarla asentar, y
 después activar el control — igual que exige cualquier memoria
 asíncrona real."
 
-## 6. Resultados de simulación (1 min)
+## 6. Resultados de simulación y demostración en vivo (2.5 min)
 
-**Mostrar:** terminal con la corrida real de `xvlog`/`xelab`/`xsim`.
+**Mostrar:** primero la terminal con la corrida real de
+`xvlog`/`xelab`/`xsim`; después el visor de formas de onda de Vivado.
 
-**Decir:**
+**Decir (resultados en texto):**
 "Con esa corrección, las tres verificaciones pasan limpio: 22 de 22
 checks para la memoria 4 por 4 de bytes, 5 de 5 para el registro
 independiente, y 5 de 5 para la misma arquitectura instanciada con
 otros parámetros — una matriz de 8 por 8 con palabras de 16 bits, sin
 tocar ningún módulo, solo cambiando los parámetros. Esto demuestra que
 sí quedó parametrizado de verdad, no con un solo tamaño fijo."
+
+**Hacer (demo en vivo):** abrir la GUI de Vivado Simulator con
+
+```bash
+xelab testbench -s testbench_sim -debug all
+xsim testbench_sim -gui
+```
+
+y en la consola Tcl escribir `source sim/wave.tcl` — esto carga de una
+vez la dirección, `wr_en`, `rd_en`, el bus de datos, y por dentro del
+plano de bit 0 las salidas del decodificador de fila/columna y la
+selección de una celda puntual, y corre toda la simulación.
+
+**Decir (señalando la forma de onda):**
+"Acá se ve en vivo lo que antes solo describí: cuando `addr` cambia y
+se activa `wr_en`, el bus de datos entra con el valor que estoy
+escribiendo; cuando cambio la dirección y activo `rd_en`, el bus pasa
+a mostrar lo que esa dirección tiene guardado; y en los tramos donde
+ni `wr_en` ni `rd_en` están activos, el bus queda en alta impedancia —
+se ve como una línea discontinua o en rojo en la forma de onda, no un
+0 ni un 1. Y en las señales internas del decodificador se puede ver
+cómo, al cambiar la dirección, se activa una sola fila y una sola
+columna a la vez — ahí está la selección de celda que expliqué antes,
+pero ahora mostrada, no solo contada."
 
 ## 7. Cierre (30 seg)
 
