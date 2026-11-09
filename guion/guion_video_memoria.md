@@ -33,10 +33,9 @@ capturas de otro lado."
 algo, su salida tiene que realimentarse a su propia entrada. Una
 compuerta OR con su salida realimentada solo puede recordar un uno; una
 AND con su salida realimentada solo puede recordar un cero. El video
-las combina en lo que llama un AND-OR latch: la salida `q` es
-`(set OR q) AND (NOT reset)`. Si pongo `set` en uno, `q` se queda en
-uno aunque `set` vuelva a cero; si pongo `reset` en uno, pasa lo
-mismo pero para el cero. Esto está implementado acá con compuertas
+las combina en lo que llama un AND-OR latch: si pongo `set` en uno,
+`q` pasa a uno y se queda ahí aunque `set` vuelva a cero después; y si
+pongo `reset` en uno, pasa lo mismo pero para el cero. Esto está implementado acá con compuertas
 primitivas de Verilog — `and`, `or`, `not` — a propósito, sin ningún
 reloj: el bit se retiene solo por la realimentación estructural, igual
 que en el video."
@@ -48,10 +47,11 @@ que en el video."
 **Decir:**
 "El problema de usar set/reset directo es que un dato normalmente es
 un solo bit, no dos líneas separadas de 'poner' y 'borrar'. Por eso se
-agrega una línea de write enable: `set = d AND wr_en`, `reset =
-(NOT d) AND wr_en`. Si `wr_en` está en cero, el latch ignora
-completamente el dato y mantiene su valor; si está en uno, copia el
-dato y lo retiene después. Juntando varios de estos gated latches con
+agrega una línea de write enable: si `wr_en` está en cero, el latch
+ignora completamente el dato que le llegue y mantiene lo que ya tenía
+guardado; si `wr_en` está en uno, copia el valor que le estoy pasando
+y lo retiene después, aunque el dato o el `wr_en` vuelvan a cero.
+Juntando varios de estos gated latches con
 el mismo write enable compartido se forma un registro — acá está
 `register.sv`, parametrizado en el ancho, con un `generate` que
 instancia tantos gated latches como bits se pidan. Este módulo lo dejé
@@ -82,10 +82,12 @@ exactamente una salida cada una, sin solapamientos."
 celda, el video agrega un read enable y usa la misma línea para los
 dos sentidos. Acá en `mem_cell.sv` esa línea es un puerto `inout`: el
 dato entra directo al gated latch, que lo ignora si no se está
-escribiendo esa celda; y hay un `assign data = rd_sel ? q : 1'bz` que
-solo maneja el bus cuando a esta celda específica le toca ser leída —
-el mismo mecanismo de bus triestado que ya usé en la ALU del examen
-final. En `mem_matrix.sv` se juntan el decodificador de filas, el de
+escribiendo esa celda; y hay una línea que hace que esta celda
+específica maneje el bus solo cuando le toca ser leída — en cualquier
+otro momento se queda en alta impedancia, para no estorbar a las demás
+celdas que comparten la misma línea. Es el mismo mecanismo de bus
+triestado que ya usé en la ALU del examen final. En `mem_matrix.sv` se
+juntan el decodificador de filas, el de
 columnas, y por cada celda un AND que combina la selección de fila,
 de columna, y el write o read enable globales — así que solo la celda
 en la intersección exacta de la dirección recibe la señal de
